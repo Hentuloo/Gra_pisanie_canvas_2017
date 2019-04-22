@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Dokument bez tytułu</title>
+<style>
+body
+{
+margin:0px;
+padding:0px;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+background-color:darkgray;
+}
+</style>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvasElem = document.getElementById('canvas');
+const ctx = canvasElem.getContext('2d');  
+canvas.width = 500;
+canvas.height= 820;
+    
+    
+    var level=[true,true,true,true,true,true,true,true,true,true]
+    
+    var punkty=0//punkty na start 
+    var bonus=10//bonus do punktów za wpisanie litery
+    
+    var velY=0.5//prędkość kulek
+    
+    var missClick1=false//zmienna sprawdzająca czy występuje zadeklarowane poprzez kliknięcie litera
+    var missClick2=false//zmienna sprawdzająca czy występuje zadeklarowane poprzez kliknięcie litera
+   
+var Delay_kulki=1200//losowanie kulki jest co 1,5s jest ono zmniejszane w trakcie
+    
+    var kuleUP=[]//tablica przechwytująca particles które powstają od góry
+    var kuleDown=[]//tablica przechwytująca particles
+    var Znaki_zakres=["q","w","e","r","t","y","u","i","o","p","a","s","d","f","g","h","j","k","l","z","x","c","v","b","n","m"]//tablica z literami
+
+  document.addEventListener("keypress",function(ev)//przechwytywanie zdarzeń keypress
+       {
+      var keyNumber=ev.keyCode; 
+      var znak= String.fromCharCode(keyNumber)///zamiana kodu liczbowego na litere
+      
+        missClick1=false
+        missClick2=false
+        var tak=false//zmienna pomocnicza sprawdzania czy wystąpiła litera
+      kuleUP.forEach(function(literyUP,i)//forEach
+        {
+         if(literyUP.name==znak)
+             {    
+            kuleUP.splice(i,1)//i to zmienna która pokazuje element w tablicy 
+            missClick1=false
+            tak=true
+            punkty+=bonus
+             }
+          if(tak==false)
+              {
+               missClick1=true
+               
+              }
+         
+      })
+          kuleDown.forEach(function(literyDOWN,i)
+        {
+         if(literyDOWN.name==znak)
+             {
+                kuleDown.splice(i,1)
+                  missClick2=false
+              tak=true
+                 punkty+=bonus//dodawanie punktów
+             }
+          if(tak==false)
+              {
+               missClick2=true
+              }
+         
+      })
+      
+      if(missClick1==true&&missClick2==true)
+          {
+              alert("przegrałeś zły wciśnięty przycisk")
+              alert("Ilość zdobytych punktów: "+punkty)
+              reset()
+          }
+      
+          
+        velY+=0.03//zwiększanie prędkości kulek
+        Delay_kulki-=30//czas setInterval zmniejszany co daje coraz sszybsze pojawianie się kulek
+  });
+
+    
+    
+    var korytarz=
+        {
+            H:200,//szerokość korytarza
+            Y:(canvas.height/2)-100,// początek korytarza -100 żeby był na środku
+        };
+    
+    
+    var create=function()//funkcja tworząca kulki
+    {
+       
+    var literyUP=//obiekt posiadające randomowe wartości kulki
+        {
+           
+            Y:0,//UP czyli od góry
+            radius:(Math.random()*20)+20,//różna grubość 
+            X:(Math.random()*(canvas.width-40)+20),//odpowiednio kalibruje żeby bomble nie powstawały za mapą
+            
+            
+name:Znaki_zakres[Math.floor(Math.random()*Znaki_zakres.length)],//losowanie literki
+color:"rgba("+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+0.7+")",//losowanie koloru i ustawienie przezroczystości na 0.7
+        }
+        
+    var literyDOWN=//obiekt posiadające randomowe wartości kulki
+        {
+            Y:canvas.height,
+            radius:(Math.random()*20)+20, 
+            X:(Math.random()*(canvas.width-40)+20),//odpowiednio kalibruje żeby bomble nie powstawały za mapą
+           
+            
+name:Znaki_zakres[Math.floor(Math.random()*Znaki_zakres.length)],       
+color:"rgba("+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+0.7+")",
+        }
+    
+    kuleUP.push(literyUP);//wrzucam nową kulkę do tablicy
+    kuleDown.push(literyDOWN);//wrzucam nową kulkę do tablicy  
+        
+    
+    }
+    
+    
+    var rysuje=function()
+    {    
+        kuleDown.forEach(function(literyDOWN)//przeglądam tablice
+         {
+            if(literyDOWN.Y-literyDOWN.radius<korytarz.Y)//gdy jest  kulka dojechała za wysoko resetuje
+                {
+                    alert("przegrałeś kula wyszła za swoją połowe")
+                    alert("Ilość zdobytych punktów: "+punkty)
+              reset()
+                }
+            
+        ctx.beginPath()    
+        ctx.fillStyle=literyDOWN.color
+            
+        ctx.arc(literyDOWN.X,literyDOWN.Y,literyDOWN.radius,0,Math.PI*2);
+        ctx.fill() 
+        ctx.fillStyle="black"
+        ctx.font = "30px arial";
+ctx.fillText(literyDOWN.name,literyDOWN.X-10,literyDOWN.Y+10);
+        });
+        
+        kuleUP.forEach(function(literyUP)
+                      {  
+            if(literyUP.Y+literyUP.radius>korytarz.Y+korytarz.H)
+                {
+                    alert("przegrałeś kula wyszła za swoją połowe")
+                    alert("Ilość zdobytych punktów: "+punkty)
+                reset()
+                }
+        ctx.beginPath()
+        ctx.fillStyle=literyUP.color
+        ctx.arc(literyUP.X,literyUP.Y,literyUP.radius,0,Math.PI*2);
+        ctx.fill()
+        ctx.fillStyle="black"
+        ctx.font = "30px arial";
+        ctx.fillText(literyUP.name,literyUP.X-10,literyUP.Y+10);//rysuje text +10 żeby litera była w środku kułka
+        });
+        
+    }
+    
+    
+    
+    var mapa=function()
+    {
+    ctx.beginPath()
+    ctx.fillStyle="antiquewhite"
+    ctx.rect(0,0,canvas.width,canvas.height)
+    ctx.fill()
+        
+     ctx.beginPath()
+     ctx.fillStyle="green"
+     ctx.rect(0,korytarz.Y,canvas.width,korytarz.H)
+     ctx.fill()
+    }
+    
+    var move= function()//poruszanie się kulek
+    {
+        kuleDown.forEach(function(literyDOWN)
+        {
+            literyDOWN.Y-=velY
+            
+        })
+         kuleUP.forEach(function(literyUP)
+        {
+            literyUP.Y+=velY
+        })
+        
+    }
+    var reset=function()//resetowanie gierki
+    {
+        kuleDown=[]
+        kuleUP=[]
+        velY=0.5
+        punkty=0
+        bonus=10
+        Delay_kulki=1500
+        level=[true,true,true,true,true,true,true,true,true,true]
+    }
+
+    
+    function play()
+    {
+    mapa()
+    rysuje()
+    move()
+    window.requestAnimationFrame(play);
+    }
+    create()
+    play()
+    setInterval(create,Delay_kulki)
+    
+</script>
+</body>
+</html>
